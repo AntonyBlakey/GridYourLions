@@ -1,16 +1,20 @@
 {
   "name": "gridyourlions",
   "version": "1.0.0",
-  "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "build": "webpack",
+    "install": "(echo '#!/usr/bin/env node' ; cat dist/gridyourlions.js) > /usr/local/bin/gridyourlions.js && chmod +x /usr/local/bin/gridyourlions.js"
+  },
   "dependencies": {
-    "shelljs": "^0.8.3",
-    "ts-node": "^8.5.0",
-    "typescript": "^3.7.2",
     "yargs": "^14.2.0"
   },
   "devDependencies": {
-    "@types/shelljs": "^0.8.6",
-    "@types/yargs": "^13.0.3"
+    "typescript": "^3.7.2",
+    "@types/node": "^12.12.7",
+    "@types/yargs": "^13.0.3",
+    "ts-loader": "^6.2.1",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
   }
 }

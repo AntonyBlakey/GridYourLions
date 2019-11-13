@@ -1,17 +1,15 @@
-#!/usr/bin/env node
-
-import * as shell from 'shelljs';
+const { execSync } = require('child_process');
 
 const parent_window_re = /Parent window id: (0x[0-9a-f]+)/;
 function getParent(id: String): String {
-    const window_info = shell.exec(`xwininfo -id ${id} -children`, { silent: true }).stdout;
+    const window_info = execSync(`xwininfo -id ${id} -children`, { encoding: 'utf8' });
     return window_info.match(parent_window_re)[1];
 }
 
 let _active_window_direct_id = null;
 function activeWindowDirectId(): String {
     if (_active_window_direct_id == null) {
-        _active_window_direct_id = shell.exec('xprop -root _NET_ACTIVE_WINDOW', { silent: true }).stdout.match(id_re)[0];
+        _active_window_direct_id = execSync('xprop -root _NET_ACTIVE_WINDOW', { encoding: 'utf8' }).match(id_re)[0];
     }
     return _active_window_direct_id;
 }
@@ -20,7 +18,7 @@ let _active_window_id = null;
 function activeWindowId(): String {
     if (_active_window_id == null) {
         _active_window_id = getParent(activeWindowDirectId());
-        console.log("Active Window:", _active_window_id);
+        // console.log("Active Window:", _active_window_id);
     }
     return _active_window_id;
 }
@@ -31,9 +29,9 @@ const wininfo_geometry_re = /-geometry (\d+)x(\d+)/;
 let _resize_data = null;
 function resizeData(): number[] {
     if (_resize_data == null) {
-        const wininfo = shell.exec(`xwininfo -id ${activeWindowDirectId()}`, { silent: true }).stdout;
+        const wininfo = execSync(`xwininfo -id ${activeWindowDirectId()}`, { encoding: 'utf8' });
         const g = wininfo.match(wininfo_geometry_re);
-        const props = shell.exec(`xprop -id ${activeWindowDirectId()} WM_NORMAL_HINTS`, { silent: true }).stdout;
+        const props = execSync(`xprop -id ${activeWindowDirectId()} WM_NORMAL_HINTS`, { encoding: 'utf8' });
         const ri = props.match(resize_increment_re);
         const bs = props.match(base_size_re);
         if (ri == null) {
@@ -56,7 +54,7 @@ let _client_ids = null;
 function clientIds(): Set<String> {
     if (_client_ids == null) {
         _client_ids = new Set<String>();
-        const clients = shell.exec('xprop -root _NET_CLIENT_LIST', { silent: true }).stdout.match(id_re);
+        const clients = execSync('xprop -root _NET_CLIENT_LIST', { encoding: 'utf8' }).match(id_re);
         clients.forEach(id => _client_ids.add(getParent(id)))
     }
     return _client_ids;
@@ -67,7 +65,7 @@ let _geometries = null;
 function geometries(): Map<String, number[]> {
     if (_geometries == null) {
         _geometries = new Map<String, number[]>();
-        const lines = shell.exec(`xwininfo -root -children`, { silent: true }).stdout.split('\n');
+        const lines = execSync(`xwininfo -root -children`, { encoding: 'utf8' }).split('\n');
         lines.forEach(line => {
             const geometry = line.match(geometry_re);
             if (geometry) {
@@ -81,7 +79,7 @@ function geometries(): Map<String, number[]> {
                 }
             }
         });
-        console.log("Geometries:", _geometries);
+        // console.log("Geometries:", _geometries);
     }
     return _geometries;
 }
@@ -107,7 +105,7 @@ function movePositive(axis: number): number {
     const geometry = geometries().get(activeWindowId());
     const leading = geometry[0 + axis];
     const trailing = geometry[2 + axis];
-    console.log(leading, '-', trailing, 'in', grid);
+    // console.log(leading, '-', trailing, 'in', grid);
     const next_leading = grid.findIndex(line => leading < line);
     const next_trailing = grid.findIndex(line => trailing < line);
     if (next_leading < 0) {
@@ -187,8 +185,8 @@ function resizeNegative(axis: number): number {
 function moveWindow(x_delta: number, y_delta: number) {
     const geometry = geometries().get(activeWindowId());
     const cmd = `xdotool windowmove ${activeWindowId()} ${geometry[0] + x_delta} ${geometry[1] + y_delta}`;
-    console.log(cmd);
-    shell.exec(cmd);
+    // console.log(cmd);
+    execSync(cmd, { encoding: 'utf8' });
 }
 
 function moveLeft() {
@@ -208,14 +206,14 @@ function moveDown() {
 }
 
 function resizeWindow(x_delta: number, y_delta: number) {
-    console.log("Resize", x_delta, y_delta);
+    // console.log("Resize", x_delta, y_delta);
     const data = resizeData();
-    console.log(data);
+    // console.log(data);
     const w = (data[X_AXIS][0] + Math.floor(x_delta / data[X_AXIS][2])) * data[X_AXIS][2] + data[X_AXIS][1];
     const h = (data[Y_AXIS][0] + Math.floor(y_delta / data[Y_AXIS][2])) * data[Y_AXIS][2] + data[Y_AXIS][1];
     const cmd = `xdotool windowsize ${activeWindowDirectId()} ${w} ${h}`;
-    console.log(cmd);
-    shell.exec(cmd);
+    // console.log(cmd);
+    execSync(cmd, { encoding: 'utf8' });
 }
 
 function resizeLeft() {
