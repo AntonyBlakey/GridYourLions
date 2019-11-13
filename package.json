@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "webpack",
-    "install": "(echo '#!/usr/bin/env node' ; cat dist/gridyourlions.js) > /usr/local/bin/gridyourlions.js && chmod +x /usr/local/bin/gridyourlions.js"
+    "install-binary": "(echo '#!/usr/bin/env node' ; cat dist/gridyourlions.js) > /usr/local/bin/gridyourlions.js && chmod +x /usr/local/bin/gridyourlions.js"
   },
   "dependencies": {
     "yargs": "^14.2.0"
