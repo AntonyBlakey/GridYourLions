@@ -1,9 +1,13 @@
 const { execSync } = require('child_process');
 
 const parent_window_re = /Parent window id: (0x[0-9a-f]+)/;
+const viewable_re = /Map State: IsViewable/;
 function getParent(id: String): String {
-    const window_info = execSync(`xwininfo -id ${id} -children`, { encoding: 'utf8' });
-    return window_info.match(parent_window_re)[1];
+    const window_info = execSync(`xwininfo -id ${id} -children -stats`, { encoding: 'utf8' });
+    if (window_info.match(viewable_re))
+        return window_info.match(parent_window_re)[1];
+    else
+        return null;
 }
 
 let _active_window_direct_id = null;
@@ -55,7 +59,7 @@ function clientIds(): Set<String> {
     if (_client_ids == null) {
         _client_ids = new Set<String>();
         const clients = execSync('xprop -root _NET_CLIENT_LIST', { encoding: 'utf8' }).match(id_re);
-        clients.forEach(id => _client_ids.add(getParent(id)))
+        clients.forEach(id => { const parent = getParent(id); if (parent) _client_ids.add(parent) });
     }
     return _client_ids;
 }
